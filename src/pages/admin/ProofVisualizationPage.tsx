@@ -7,22 +7,29 @@ import { Search, Database, ShieldCheck, GitCommit, ArrowRight, CheckCircle2, Clo
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
+interface MerkleNode {
+    hash: string;
+    type: 'root' | 'node' | 'leaf';
+    status: 'verified' | 'tampered' | 'pending';
+    data?: string;
+}
+
 // --- Mock Data ---
 const merkleTreeData = {
     root: "0x8f3...2a9",
     levels: [
         [
-            { hash: "0x8f3...2a9", type: "root", status: "verified" }
+            { hash: "0x8f3...2a9", type: "root" as const, status: "verified" as const }
         ],
         [
-            { hash: "0x4a1...b2c", type: "node", status: "verified" },
-            { hash: "0x9d2...e4f", type: "node", status: "verified" }
+            { hash: "0x4a1...b2c", type: "node" as const, status: "verified" as const },
+            { hash: "0x9d2...e4f", type: "node" as const, status: "verified" as const }
         ],
         [
-            { hash: "0x1b2...3c4", type: "leaf", status: "verified", data: "Doc A" },
-            { hash: "0x5e6...7f8", type: "leaf", status: "verified", data: "Doc B" },
-            { hash: "0x9a0...1b2", type: "leaf", status: "verified", data: "Doc C" },
-            { hash: "0x3c4...5d6", type: "leaf", status: "tampered", data: "Doc D" }
+            { hash: "0x1b2...3c4", type: "leaf" as const, status: "verified" as const, data: "Doc A" },
+            { hash: "0x5e6...7f8", type: "leaf" as const, status: "verified" as const, data: "Doc B" },
+            { hash: "0x9a0...1b2", type: "leaf" as const, status: "verified" as const, data: "Doc C" },
+            { hash: "0x3c4...5d6", type: "leaf" as const, status: "tampered" as const, data: "Doc D" }
         ]
     ]
 };
@@ -40,7 +47,7 @@ const stats = [
 ];
 
 export function ProofVisualizationPage() {
-    const [selectedNode, setSelectedNode] = useState<any>(null);
+    const [selectedNode, setSelectedNode] = useState<MerkleNode | null>(null);
 
     return (
         <div className="space-y-8 p-6 max-w-[1600px] mx-auto">

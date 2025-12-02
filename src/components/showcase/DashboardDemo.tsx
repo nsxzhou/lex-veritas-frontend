@@ -57,7 +57,17 @@ const stats = [
     },
 ];
 
-function StatCard({ title, value, delta, positive, prefix, suffix, chartData }: any) {
+interface StatCardProps {
+    title: string;
+    value: number;
+    delta: number;
+    positive: boolean;
+    prefix: string;
+    suffix: string;
+    chartData: { name: string; uv: number }[];
+}
+
+function StatCard({ title, value, delta, positive, prefix, suffix, chartData }: StatCardProps) {
     return (
         <Card className="overflow-hidden">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Scale, ArrowRight, MessageSquare, Smartphone, QrCode } from 'lucide-react';
+import { Scale, ShieldCheck, ArrowRight, MessageSquare, Smartphone, QrCode } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';

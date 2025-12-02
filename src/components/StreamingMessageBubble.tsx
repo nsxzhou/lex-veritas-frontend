@@ -20,8 +20,6 @@ interface StreamingMessageBubbleProps {
     message: Message;
     isStreaming?: boolean;
     onCitationClick?: (citation: Citation) => void;
-    onCitationEnter?: (citation: Citation) => void;
-    onCitationLeave?: () => void;
     onStreamingComplete?: () => void;
 }
 
@@ -29,8 +27,6 @@ export function StreamingMessageBubble({
     message,
     isStreaming = false,
     onCitationClick,
-    onCitationEnter,
-    onCitationLeave,
     onStreamingComplete
 }: StreamingMessageBubbleProps) {
     const [displayedContent, setDisplayedContent] = useState("");
