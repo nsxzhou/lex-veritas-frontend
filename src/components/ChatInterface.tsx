@@ -1,9 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import {
     Send,
-    Bot,
-    User,
-    Sparkles,
     ShieldCheck,
     Menu,
     Plus,
@@ -12,25 +9,19 @@ import {
     Paperclip,
     Share2,
     ChevronLeft,
-    LogIn
+    LogIn,
+    Sparkles
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { EvidencePanel, type Citation } from "./EvidencePanel";
+import { StreamingMessageBubble, type Message } from "./StreamingMessageBubble";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 // --- Types ---
-interface Message {
-    id: string;
-    role: "user" | "assistant";
-    content: string;
-    citations?: Citation[];
-    timestamp: Date;
-}
-
 interface ChatSession {
     id: string;
     title: string;
@@ -86,9 +77,7 @@ const Sidebar = ({
                         <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-600 to-blue-500 flex items-center justify-center shadow-lg shadow-blue-500/20">
                             <ShieldCheck className="w-5 h-5 text-white" />
                         </div>
-                        <span className="font-bold text-lg bg-clip-text text-transparent bg-gradient-to-r from-blue-700 to-blue-500">
-                            LexVeritas
-                        </span>
+                        <span className="font-bold tracking-tight text-gray-900">LexVeritas</span>
                     </div>
                     <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsOpen(false)}>
                         <ChevronLeft className="w-5 h-5" />
@@ -171,6 +160,7 @@ export function ChatInterface() {
     ]);
     const [input, setInput] = useState("");
     const [isTyping, setIsTyping] = useState(false);
+    const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
     const [activeCitation, setActiveCitation] = useState<Citation | null>(null);
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -181,7 +171,7 @@ export function ChatInterface() {
 
     useEffect(() => {
         scrollToBottom();
-    }, [messages, isTyping]);
+    }, [messages, isTyping, streamingMessageId]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -200,15 +190,17 @@ export function ChatInterface() {
 
         // Simulate AI response
         setTimeout(() => {
+            const aiMessageId = (Date.now() + 1).toString();
             const aiMessage: Message = {
-                id: (Date.now() + 1).toString(),
+                id: aiMessageId,
                 role: "assistant",
-                content: "根据第四修正案，保障人民免受不合理的搜查和扣押。",
+                content: "根据第四修正案，保障人民免受不合理的搜查和扣押。任何搜查令必须基于合理的理由，并由中立的法官签发，且必须具体描述搜查的地点和扣押的物品。",
                 citations: [MOCK_CITATION],
                 timestamp: new Date(),
             };
             setMessages((prev) => [...prev, aiMessage]);
             setIsTyping(false);
+            setStreamingMessageId(aiMessageId);
         }, 1500);
     };
 
@@ -257,65 +249,15 @@ export function ChatInterface() {
                     <div className="max-w-3xl mx-auto space-y-8 pb-4">
                         <AnimatePresence initial={false}>
                             {messages.map((message) => (
-                                <motion.div
+                                <StreamingMessageBubble
                                     key={message.id}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    className={cn(
-                                        "flex gap-4 group",
-                                        message.role === "user" ? "justify-end" : "justify-start"
-                                    )}
-                                >
-                                    {message.role === "assistant" && (
-                                        <div className="w-10 h-10 rounded-xl bg-white shadow-sm border border-blue-100 flex items-center justify-center shrink-0 mt-1">
-                                            <Bot className="w-6 h-6 text-blue-600" />
-                                        </div>
-                                    )}
-
-                                    <div
-                                        className={cn(
-                                            "max-w-[85%] rounded-2xl px-6 py-4 shadow-sm transition-all duration-200 relative",
-                                            message.role === "user"
-                                                ? "bg-gradient-to-br from-blue-600 to-blue-500 text-white rounded-br-none shadow-blue-500/20"
-                                                : "bg-white border border-gray-100 text-gray-800 rounded-bl-none shadow-gray-200/50"
-                                        )}
-                                    >
-                                        <div className="prose prose-sm max-w-none">
-                                            <p className={cn("leading-relaxed text-[15px]", message.role === "user" ? "text-white" : "text-gray-700")}>
-                                                {message.content}
-                                            </p>
-                                        </div>
-
-                                        {message.citations && (
-                                            <div className="mt-4 flex flex-wrap gap-2 pt-3 border-t border-gray-100/50">
-                                                {message.citations.map((citation) => (
-                                                    <button
-                                                        key={citation.id}
-                                                        onMouseEnter={() => setActiveCitation(citation)}
-                                                        onMouseLeave={() => setActiveCitation(null)}
-                                                        className="inline-flex items-center gap-1.5 text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 px-2.5 py-1.5 rounded-lg transition-colors cursor-help border border-blue-200/50 group/citation"
-                                                    >
-                                                        <ShieldCheck className="w-3.5 h-3.5 text-blue-500 group-hover/citation:text-blue-600" />
-                                                        <span className="font-medium">引用 {citation.id.split("-")[1]}</span>
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        )}
-
-                                        <span className={cn(
-                                            "absolute bottom-2 text-[10px] opacity-0 group-hover:opacity-100 transition-opacity",
-                                            message.role === "user" ? "-left-12 text-gray-400" : "-right-12 text-gray-400"
-                                        )}>
-                                            {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                        </span>
-                                    </div>
-
-                                    {message.role === "user" && (
-                                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center shrink-0 border border-white shadow-sm mt-1">
-                                            <User className="w-6 h-6 text-gray-600" />
-                                        </div>
-                                    )}
-                                </motion.div>
+                                    message={message}
+                                    isStreaming={message.id === streamingMessageId}
+                                    onCitationClick={setActiveCitation}
+                                    onCitationEnter={setActiveCitation}
+                                    onCitationLeave={() => setActiveCitation(null)}
+                                    onStreamingComplete={() => setStreamingMessageId(null)}
+                                />
                             ))}
                         </AnimatePresence>
 
