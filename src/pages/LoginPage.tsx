@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, ArrowRight, MessageSquare, Smartphone, QrCode } from 'lucide-react';
+import { Scale, ArrowRight, MessageSquare, Smartphone, QrCode } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
@@ -36,7 +36,7 @@ export function LoginPage() {
                 {/* Header / Logo */}
                 <div className="flex flex-col items-center mb-10">
                     <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center shadow-xl shadow-blue-600/20 mb-6">
-                        <ShieldCheck className="w-6 h-6 text-white" />
+                        <Scale className="w-5 h-5 text-white" />
                     </div>
                     <h1 className="text-3xl font-medium tracking-tight text-gray-900 mb-2">
                         LexVeritas

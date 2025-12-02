@@ -81,7 +81,7 @@ const Sidebar = ({
                 {/* Header */}
                 <div className="flex items-center gap-3 mb-8 px-2 justify-between pt-2">
                     <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20 ring-1 ring-white/20">
+                        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-600 to-blue-500 flex items-center justify-center shadow-lg shadow-blue-500/20 shrink-0">
                             <Scale className="w-5 h-5 text-white" />
                         </div>
                         <div>
@@ -97,7 +97,7 @@ const Sidebar = ({
                 {/* New Chat Button */}
                 <Button
                     onClick={onNewChat}
-                    className="w-full justify-start gap-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md shadow-blue-500/20 mb-6 h-11 rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98]"
+                    className="w-full justify-start gap-3 bg-gradient-to-r from-blue-600 to-blue-500   hover:from-blue-700 hover:to-blue-700 text-white shadow-md shadow-blue-500/20 mb-6 h-11 rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98]"
                 >
                     <Plus className="w-5 h-5" />
                     <span className="font-medium">开启新对话</span>
@@ -163,7 +163,7 @@ const Sidebar = ({
                     </Link>
                 </div>
             </div>
-        </motion.div>
+        </motion.div >
     );
 };
 
