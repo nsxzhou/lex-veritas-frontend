@@ -53,10 +53,10 @@ export function AdminLayout() {
                 <nav className="flex-1 p-4 space-y-1 overflow-hidden">
                     {[
                         { path: '/admin', icon: LayoutDashboard, label: '仪表盘' },
+                        { path: '/admin/users', icon: Users, label: '用户管理' },
                         { path: '/admin/knowledge', icon: Database, label: '知识库管理' },
                         { path: '/admin/proof', icon: Network, label: '存证可视化' },
                         { path: '/admin/audit', icon: ShieldAlert, label: '安全审计' },
-                        { path: '/admin/users', icon: Users, label: '用户管理' },
                         { path: '/admin/settings', icon: Settings, label: '系统设置' },
                     ].map((item) => (
                         <Link key={item.path} to={item.path}>
@@ -85,13 +85,6 @@ export function AdminLayout() {
                             isCollapsed && "justify-center px-2"
                         )}
                     >
-                        <Activity className="w-4 h-4 shrink-0" />
-                        <span className={cn(
-                            "transition-all duration-300 whitespace-nowrap overflow-hidden",
-                            isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"
-                        )}>
-                            系统监控
-                        </span>
                     </Button>
                 </nav>
 

@@ -8,7 +8,6 @@ import {
     Paperclip,
     Share2,
     ChevronLeft,
-    LogIn,
     Sparkles,
     Scale
 } from "lucide-react";
@@ -150,14 +149,14 @@ const Sidebar = ({
 
                 {/* User Profile */}
                 <div className="mt-4 pt-4 border-t border-gray-100">
-                    <Link to="/login">
+                    <Link to="/profile">
                         <Button variant="ghost" className="w-full justify-start gap-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 h-12 rounded-xl">
-                            <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200">
-                                <LogIn className="w-4 h-4 text-gray-500" />
+                            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center border border-blue-200">
+                                <span className="text-blue-600 font-bold text-xs">U</span>
                             </div>
                             <div className="flex flex-col items-start text-xs">
-                                <span className="font-medium text-sm">登录账户</span>
-                                <span className="text-gray-400">同步您的对话记录</span>
+                                <span className="font-medium text-sm">个人中心</span>
+                                <span className="text-gray-400">查看消耗与设置</span>
                             </div>
                         </Button>
                     </Link>
