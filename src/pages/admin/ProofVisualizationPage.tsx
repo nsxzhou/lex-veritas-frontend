@@ -54,7 +54,7 @@ export function ProofVisualizationPage() {
             {/* Header Section */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-gray-900">存证与指纹可视化</h1>
+                    <h1 className="text-3xl font-bold tracking-tight text-gray-900">存证可视化</h1>
                     <p className="text-gray-500 mt-2 text-lg">实时监控 Merkle Tree 状态与区块链存证记录，确保数据不可篡改。</p>
                 </div>
                 <div className="flex gap-3">
