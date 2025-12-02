@@ -6,8 +6,13 @@ import {
     FileText,
     Search,
     Server,
-    Database
+    Database,
+    Upload
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useState } from 'react';
+import { MultiSourceUploader } from '@/components/MultiSourceUploader';
+import { AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import {
     XAxis,
@@ -179,8 +184,23 @@ function StatCard({ title, value, delta, positive, icon: Icon, chartData, color,
 }
 
 export function AdminDashboard() {
+    const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+
     return (
-        <>
+        <div className="space-y-8">
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="font-semibold text-2xl text-gray-900">仪表盘概览</h1>
+                    <p className="text-sm text-gray-500 mt-1">实时监控系统运行状态与业务数据</p>
+                </div>
+                <Button
+                    onClick={() => setIsUploadModalOpen(true)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-600/20"
+                >
+                    <Upload className="w-4 h-4 mr-2" />
+                    上传数据
+                </Button>
+            </div>
             {/* Stats Grid */}
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                 {stats.map((stat, i) => (
@@ -272,6 +292,16 @@ export function AdminDashboard() {
                     </CardContent>
                 </Card>
             </div>
-        </>
+
+
+            <AnimatePresence>
+                {isUploadModalOpen && (
+                    <MultiSourceUploader
+                        isOpen={isUploadModalOpen}
+                        onClose={() => setIsUploadModalOpen(false)}
+                    />
+                )}
+            </AnimatePresence>
+        </div >
     );
 }
