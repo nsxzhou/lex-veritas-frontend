@@ -1,8 +1,11 @@
-import { useState, useEffect } from 'react';
-import { Bot, User, ShieldCheck } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Bot, User } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { type Citation } from './EvidencePanel';
+import { AlertTriangle } from 'lucide-react';
+import { marked } from 'marked';
+import DOMPurify from 'dompurify';
 
 export interface Message {
     id: string;
@@ -10,6 +13,7 @@ export interface Message {
     content: string;
     citations?: Citation[];
     timestamp: Date;
+    tampered?: boolean;
 }
 
 interface StreamingMessageBubbleProps {
@@ -31,6 +35,57 @@ export function StreamingMessageBubble({
 }: StreamingMessageBubbleProps) {
     const [displayedContent, setDisplayedContent] = useState("");
     const isUser = message.role === "user";
+    const contentRef = useRef<HTMLDivElement>(null);
+
+    // 配置 marked
+    marked.setOptions({
+        gfm: true,
+        breaks: true,
+    });
+
+    // 渲染 markdown 内容
+    const renderMarkdownContent = (content: string) => {
+        // 先将引用标识转换为带有特殊标记的 span
+        const contentWithCitations = content.replace(
+            /\[(\d+)\]/g,
+            '<span class="citation-badge" data-citation-id="$1"><svg class="citation-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>[$1]</span>'
+        );
+
+        // 使用 marked 解析 markdown
+        const rawHtml = marked.parse(contentWithCitations) as string;
+
+        // 使用 DOMPurify 清理 HTML，保留我们的自定义 span
+        const cleanHtml = DOMPurify.sanitize(rawHtml, {
+            ADD_ATTR: ['data-citation-id'],
+            ADD_TAGS: ['span'],
+        });
+
+        return cleanHtml;
+    };
+
+    // 处理引用标识点击
+    useEffect(() => {
+        const handleCitationClick = (e: MouseEvent) => {
+            const target = e.target as HTMLElement;
+            const citationBadge = target.closest('.citation-badge');
+
+            if (citationBadge) {
+                const citationId = citationBadge.getAttribute('data-citation-id');
+                if (citationId) {
+                    const citation = message.citations?.find(c => c.id === `cit-${citationId}`);
+                    if (citation) {
+                        onCitationClick?.(citation);
+                    }
+                }
+            }
+        };
+
+        const contentElement = contentRef.current;
+        if (contentElement) {
+            contentElement.addEventListener('click', handleCitationClick);
+            return () => contentElement.removeEventListener('click', handleCitationClick);
+        }
+    }, [message.citations, onCitationClick]);
 
     useEffect(() => {
         if (isStreaming && !isUser) {
@@ -74,17 +129,37 @@ export function StreamingMessageBubble({
                         : "bg-white border border-gray-100 text-gray-800 rounded-bl-none shadow-gray-200/50"
                 )}
             >
-                <div className="prose prose-sm max-w-none">
-                    <p className={cn("leading-relaxed text-[15px]", isUser ? "text-white" : "text-gray-700")}>
-                        {displayedContent}
-                        {isStreaming && displayedContent.length < message.content.length && (
-                            <span className="inline-block w-1.5 h-4 ml-1 align-middle bg-blue-500 animate-pulse" />
-                        )}
-                    </p>
+                <div
+                    ref={contentRef}
+                    className="prose prose-sm max-w-none prose-p:leading-relaxed prose-p:mb-3 prose-p:last:mb-0 prose-strong:font-bold prose-strong:text-gray-900"
+                >
+                    {isUser ? (
+                        <p className="leading-relaxed text-[15px] text-white whitespace-pre-wrap">{displayedContent}</p>
+                    ) : (
+                        <div
+                            className="leading-relaxed text-[15px] text-gray-700 markdown-content"
+                            dangerouslySetInnerHTML={{ __html: renderMarkdownContent(displayedContent) }}
+                        />
+                    )}
+                    {isStreaming && displayedContent.length < message.content.length && (
+                        <span className="inline-block w-1.5 h-4 ml-1 align-middle bg-blue-500 animate-pulse" />
+                    )}
                 </div>
 
+
+                {/* Tamper Warning */}
+                {message.tampered && !isStreaming && (
+                    <div className="mt-3 bg-red-50 border border-red-100 rounded-lg p-3 flex items-start gap-2">
+                        <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                        <div className="text-xs text-red-700">
+                            <p className="font-medium">数据校验失败</p>
+                            <p className="opacity-90">警告：该引用源未通过完整性校验，请谨慎参考。</p>
+                        </div>
+                    </div>
+                )}
+
                 {/* Citations - Only show when streaming is done or not streaming */}
-                {message.citations && (!isStreaming || displayedContent.length === message.content.length) && (
+                {/* {message.citations && (!isStreaming || displayedContent.length === message.content.length) && (
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -104,7 +179,7 @@ export function StreamingMessageBubble({
                             </button>
                         ))}
                     </motion.div>
-                )}
+                )} */}
 
                 <span className={cn(
                     "absolute bottom-2 text-[10px] opacity-0 group-hover:opacity-100 transition-opacity",

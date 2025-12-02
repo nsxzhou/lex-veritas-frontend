@@ -7,7 +7,9 @@ import {
     Settings,
     LogOut,
     Activity,
-    Upload
+    Upload,
+    Network,
+    ShieldAlert
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link, Outlet, useLocation } from 'react-router-dom';
@@ -45,6 +47,18 @@ export function AdminLayout() {
                             知识库管理
                         </Button>
                     </Link>
+                    <Link to="/admin/proof">
+                        <Button variant={location.pathname === '/admin/proof' ? "secondary" : "ghost"} className={cn("w-full justify-start gap-2 font-medium", location.pathname === '/admin/proof' ? "bg-blue-50 text-blue-700 hover:bg-blue-100" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900")}>
+                            <Network className="w-4 h-4" />
+                            存证可视化
+                        </Button>
+                    </Link>
+                    <Link to="/admin/audit">
+                        <Button variant={location.pathname === '/admin/audit' ? "secondary" : "ghost"} className={cn("w-full justify-start gap-2 font-medium", location.pathname === '/admin/audit' ? "bg-blue-50 text-blue-700 hover:bg-blue-100" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900")}>
+                            <ShieldAlert className="w-4 h-4" />
+                            安全审计
+                        </Button>
+                    </Link>
                     <Link to="/admin/users">
                         <Button variant={location.pathname === '/admin/users' ? "secondary" : "ghost"} className={cn("w-full justify-start gap-2 font-medium", location.pathname === '/admin/users' ? "bg-blue-50 text-blue-700 hover:bg-blue-100" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900")}>
                             <Users className="w-4 h-4" />
@@ -55,10 +69,12 @@ export function AdminLayout() {
                         <Activity className="w-4 h-4" />
                         系统监控
                     </Button>
-                    <Button variant="ghost" className="w-full justify-start gap-2 text-gray-600 hover:bg-gray-50 hover:text-gray-900">
-                        <Settings className="w-4 h-4" />
-                        系统设置
-                    </Button>
+                    <Link to="/admin/settings">
+                        <Button variant={location.pathname === '/admin/settings' ? "secondary" : "ghost"} className={cn("w-full justify-start gap-2 font-medium", location.pathname === '/admin/settings' ? "bg-blue-50 text-blue-700 hover:bg-blue-100" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900")}>
+                            <Settings className="w-4 h-4" />
+                            系统设置
+                        </Button>
+                    </Link>
                 </nav>
 
                 <div className="p-4 border-t border-gray-100">

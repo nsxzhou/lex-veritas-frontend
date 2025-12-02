@@ -8,8 +8,14 @@ import {
     Eye,
     Plus,
     FileJson,
-    Globe
+    Globe,
+    CheckSquare,
+    Square,
+    Cpu,
+    ShieldCheck,
+    Loader2
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -33,7 +39,7 @@ interface Document {
     type: 'pdf' | 'docx' | 'txt' | 'url';
     size: string;
     uploadDate: string;
-    status: 'indexed' | 'processing' | 'error';
+    status: 'indexed' | 'processing' | 'error' | 'minted';
     uploadedBy: string;
 }
 
@@ -46,10 +52,12 @@ const initialDocuments: Document[] = [
 ];
 
 export function KnowledgeBasePage() {
-    const [documents] = useState<Document[]>(initialDocuments);
+    const [documents, setDocuments] = useState<Document[]>(initialDocuments);
     const [searchQuery, setSearchQuery] = useState('');
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const [filterType, setFilterType] = useState<string>('all');
+    const [selectedDocs, setSelectedDocs] = useState<string[]>([]);
+    const [isMinting, setIsMinting] = useState(false);
 
     const filteredDocs = documents.filter(doc => {
         const matchesSearch = doc.name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -72,8 +80,40 @@ export function KnowledgeBasePage() {
             case 'indexed': return <Badge variant="default" className="bg-green-100 text-green-700 hover:bg-green-100 border-green-200">已索引</Badge>;
             case 'processing': return <Badge variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-100 border-blue-200">处理中</Badge>;
             case 'error': return <Badge variant="destructive" className="bg-red-100 text-red-700 hover:bg-red-100 border-red-200">失败</Badge>;
+            case 'minted': return <Badge variant="outline" className="bg-purple-100 text-purple-700 hover:bg-purple-100 border-purple-200 flex items-center gap-1"><ShieldCheck className="w-3 h-3" />已上链</Badge>;
             default: return <Badge variant="outline">未知</Badge>;
         }
+    };
+
+    const toggleSelectAll = () => {
+        if (selectedDocs.length === filteredDocs.length) {
+            setSelectedDocs([]);
+        } else {
+            setSelectedDocs(filteredDocs.map(d => d.id));
+        }
+    };
+
+    const toggleSelect = (id: string) => {
+        if (selectedDocs.includes(id)) {
+            setSelectedDocs(selectedDocs.filter(d => d !== id));
+        } else {
+            setSelectedDocs([...selectedDocs, id]);
+        }
+    };
+
+    const handleMint = () => {
+        setIsMinting(true);
+        toast.info('正在计算 Merkle Root...', { description: '请稍候，正在对选中的文档进行哈希计算' });
+        
+        setTimeout(() => {
+            toast.success('Merkle Root 计算完成', { description: 'Root Hash: 0x8f3...2a9' });
+            setTimeout(() => {
+                setIsMinting(false);
+                setDocuments(docs => docs.map(d => selectedDocs.includes(d.id) ? { ...d, status: 'minted' } : d));
+                setSelectedDocs([]);
+                toast.success('上链成功', { description: '交易哈希: 0x7e2...1b8' });
+            }, 1500);
+        }, 1500);
     };
 
     return (
@@ -123,13 +163,54 @@ export function KnowledgeBasePage() {
                             ))}
                         </div>
                     </div>
+                    
+                    {/* Minting Action Bar */}
+                    <AnimatePresence>
+                        {selectedDocs.length > 0 && (
+                            <div className="mt-4 p-3 bg-blue-50 border border-blue-100 rounded-lg flex items-center justify-between animate-in fade-in slide-in-from-top-2">
+                                <div className="flex items-center gap-3">
+                                    <div className="bg-blue-100 text-blue-700 px-2.5 py-1 rounded-md text-xs font-medium">
+                                        已选择 {selectedDocs.length} 项
+                                    </div>
+                                    <span className="text-sm text-blue-600">准备进行区块链存证</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Button size="sm" variant="outline" className="bg-white border-blue-200 text-blue-700 hover:bg-blue-50" onClick={() => setSelectedDocs([])}>
+                                        取消
+                                    </Button>
+                                    <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm" onClick={handleMint} disabled={isMinting}>
+                                        {isMinting ? (
+                                            <>
+                                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                                处理中...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Cpu className="w-4 h-4 mr-2" />
+                                                一键上链
+                                            </>
+                                        )}
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
+                    </AnimatePresence>
                 </CardHeader>
                 <CardContent>
                     <div className="rounded-md border border-gray-100 overflow-hidden">
                         <Table>
                             <TableHeader className="bg-gray-50">
                                 <TableRow>
-                                    <TableHead className="pl-6">文档名称</TableHead>
+                                    <TableHead className="w-[50px] pl-6">
+                                        <button onClick={toggleSelectAll} className="flex items-center justify-center text-gray-400 hover:text-gray-600">
+                                            {selectedDocs.length === filteredDocs.length && filteredDocs.length > 0 ? (
+                                                <CheckSquare className="w-5 h-5 text-blue-600" />
+                                            ) : (
+                                                <Square className="w-5 h-5" />
+                                            )}
+                                        </button>
+                                    </TableHead>
+                                    <TableHead>文档名称</TableHead>
                                     <TableHead>类型</TableHead>
                                     <TableHead>大小</TableHead>
                                     <TableHead>上传时间</TableHead>
@@ -140,8 +221,17 @@ export function KnowledgeBasePage() {
                             </TableHeader>
                             <TableBody>
                                 {filteredDocs.map((doc) => (
-                                    <TableRow key={doc.id} className="hover:bg-gray-50/50 group">
+                                    <TableRow key={doc.id} className={cn("hover:bg-gray-50/50 group transition-colors", selectedDocs.includes(doc.id) ? "bg-blue-50/30" : "")}>
                                         <TableCell className="pl-6 py-3">
+                                            <button onClick={() => toggleSelect(doc.id)} className="flex items-center justify-center text-gray-400 hover:text-gray-600">
+                                                {selectedDocs.includes(doc.id) ? (
+                                                    <CheckSquare className="w-5 h-5 text-blue-600" />
+                                                ) : (
+                                                    <Square className="w-5 h-5" />
+                                                )}
+                                            </button>
+                                        </TableCell>
+                                        <TableCell className="py-3">
                                             <div className="flex items-center gap-3">
                                                 <div className="p-2 rounded-lg bg-gray-50 border border-gray-100 group-hover:border-blue-100 group-hover:bg-blue-50 transition-colors">
                                                     {getIcon(doc.type)}
