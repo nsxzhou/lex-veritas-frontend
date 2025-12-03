@@ -32,24 +32,7 @@ import { MultiSourceUploader } from '@/components/MultiSourceUploader';
 import { AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
-// --- Mock Data ---
-interface Document {
-    id: string;
-    name: string;
-    type: 'pdf' | 'docx' | 'txt' | 'url';
-    size: string;
-    uploadDate: string;
-    status: 'indexed' | 'processing' | 'error' | 'minted';
-    uploadedBy: string;
-}
-
-const initialDocuments: Document[] = [
-    { id: '1', name: '劳动合同法_2024修订版.pdf', type: 'pdf', size: '2.4 MB', uploadDate: '2024-03-15', status: 'indexed', uploadedBy: 'Admin' },
-    { id: '2', name: '公司章程模板_v3.docx', type: 'docx', size: '856 KB', uploadDate: '2024-03-14', status: 'indexed', uploadedBy: 'Alice Guo' },
-    { id: '3', name: '知识产权纠纷案例集.txt', type: 'txt', size: '124 KB', uploadDate: '2024-03-12', status: 'processing', uploadedBy: 'Bob Chen' },
-    { id: '4', name: '最高法关于民事诉讼证据的若干规定', type: 'url', size: '-', uploadDate: '2024-03-10', status: 'indexed', uploadedBy: 'System' },
-    { id: '5', name: '无效合同.pdf', type: 'pdf', size: '0 KB', uploadDate: '2024-03-09', status: 'error', uploadedBy: 'David Li' },
-];
+import { type Document, initialDocuments } from '@/mocks/knowledgeBase';
 
 export function KnowledgeBasePage() {
     const [documents, setDocuments] = useState<Document[]>(initialDocuments);
@@ -104,7 +87,7 @@ export function KnowledgeBasePage() {
     const handleMint = () => {
         setIsMinting(true);
         toast.info('正在计算 Merkle Root...', { description: '请稍候，正在对选中的文档进行哈希计算' });
-        
+
         setTimeout(() => {
             toast.success('Merkle Root 计算完成', { description: 'Root Hash: 0x8f3...2a9' });
             setTimeout(() => {
@@ -163,7 +146,7 @@ export function KnowledgeBasePage() {
                             ))}
                         </div>
                     </div>
-                    
+
                     {/* Minting Action Bar */}
                     <AnimatePresence>
                         {selectedDocs.length > 0 && (

@@ -23,28 +23,13 @@ import {
 } from 'recharts';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { mockTokenUsage, mockUserHistory } from '@/mocks/users';
 
-// --- Mock Data ---
-const tokenUsageData = [
-    { name: 'Mon', tokens: 2400 },
-    { name: 'Tue', tokens: 1398 },
-    { name: 'Wed', tokens: 9800 },
-    { name: 'Thu', tokens: 3908 },
-    { name: 'Fri', tokens: 4800 },
-    { name: 'Sat', tokens: 3800 },
-    { name: 'Sun', tokens: 4300 },
-];
 
-const initialHistoryData = [
-    { id: 1, title: '劳动合同纠纷咨询', date: '2024-03-20 14:30', tokens: 450, status: 'verified' },
-    { id: 2, title: '知识产权侵权判定', date: '2024-03-19 09:15', tokens: 1200, status: 'verified' },
-    { id: 3, title: '公司注册流程', date: '2024-03-18 16:45', tokens: 320, status: 'verified' },
-    { id: 4, title: '房屋租赁合同审查', date: '2024-03-15 11:20', tokens: 890, status: 'verified' },
-];
 
 export function UserProfilePage() {
     const navigate = useNavigate();
-    const [history, setHistory] = useState(initialHistoryData);
+    const [history, setHistory] = useState(mockUserHistory);
     const [searchQuery, setSearchQuery] = useState('');
 
     const filteredHistory = history.filter(item =>
@@ -131,7 +116,7 @@ export function UserProfilePage() {
                                 <CardContent>
                                     <div className="h-[300px] w-full">
                                         <ResponsiveContainer width="100%" height="100%">
-                                            <BarChart data={tokenUsageData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                            <BarChart data={mockTokenUsage} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
                                                 <XAxis
                                                     dataKey="name"

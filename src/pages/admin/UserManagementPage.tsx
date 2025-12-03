@@ -42,28 +42,13 @@ import {
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from '@/lib/utils';
+import type { User } from '@/mocks/users';
+import { mockUsers } from '@/mocks/users';
 
-// --- Mock Data ---
-interface User {
-    id: string;
-    name: string;
-    email: string;
-    role: 'admin' | 'editor' | 'viewer';
-    status: 'active' | 'inactive';
-    lastActive: string;
-    avatarColor: string;
-}
 
-const initialUsers: User[] = [
-    { id: '1', name: 'Admin User', email: 'admin@lexveritas.com', role: 'admin', status: 'active', lastActive: 'Just now', avatarColor: 'bg-blue-500' },
-    { id: '2', name: 'Alice Guo', email: 'alice@lexveritas.com', role: 'editor', status: 'active', lastActive: '10 mins ago', avatarColor: 'bg-emerald-500' },
-    { id: '3', name: 'Bob Chen', email: 'bob@lexveritas.com', role: 'viewer', status: 'active', lastActive: '2 hours ago', avatarColor: 'bg-amber-500' },
-    { id: '4', name: 'David Li', email: 'david@lexveritas.com', role: 'viewer', status: 'inactive', lastActive: '3 days ago', avatarColor: 'bg-purple-500' },
-    { id: '5', name: 'Eva Zhang', email: 'eva@lexveritas.com', role: 'editor', status: 'active', lastActive: '1 day ago', avatarColor: 'bg-pink-500' },
-];
 
 export function UserManagementPage() {
-    const [users, setUsers] = useState<User[]>(initialUsers);
+    const [users, setUsers] = useState<User[]>(mockUsers);
     const [searchQuery, setSearchQuery] = useState('');
     const [filterRole, setFilterRole] = useState<string>('all');
     const [isAddUserOpen, setIsAddUserOpen] = useState(false);
@@ -80,9 +65,8 @@ export function UserManagementPage() {
 
     const getRoleBadge = (role: string) => {
         switch (role) {
-            case 'admin': return <Badge variant="default" className="bg-purple-100 text-purple-700 hover:bg-purple-100 border-purple-200">管理员</Badge>;
-            case 'editor': return <Badge variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-100 border-blue-200">编辑</Badge>;
-            case 'viewer': return <Badge variant="outline" className="text-gray-600 border-gray-200">访客</Badge>;
+            case 'admin': return <Badge variant="default" className="bg-purple-100 text-purple-700 hover:bg-purple-100 border-purple-200">系统管理员</Badge>;
+            case 'user': return <Badge variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-100 border-blue-200">普通用户</Badge>;
             default: return <Badge variant="outline">未知</Badge>;
         }
     };
@@ -95,7 +79,7 @@ export function UserManagementPage() {
                 id: (users.length + 1).toString(),
                 name: newUser.name,
                 email: newUser.email,
-                role: newUser.role as 'admin' | 'editor' | 'viewer',
+                role: newUser.role as 'admin' | 'user',
                 status: 'active',
                 lastActive: 'Just now',
                 avatarColor: 'bg-gray-500' // Default color
@@ -158,9 +142,8 @@ export function UserManagementPage() {
                                         <SelectValue placeholder="选择角色" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="viewer">访客 (Viewer)</SelectItem>
-                                        <SelectItem value="editor">编辑 (Editor)</SelectItem>
-                                        <SelectItem value="admin">管理员 (Admin)</SelectItem>
+                                        <SelectItem value="user">普通用户 (user)</SelectItem>
+                                        <SelectItem value="admin">系统管理员 (admin)</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -200,7 +183,7 @@ export function UserManagementPage() {
                             </Button>
                         </div>
                         <div className="flex items-center gap-2 bg-gray-50 p-1 rounded-lg border border-gray-100">
-                            {['all', 'admin', 'editor', 'viewer'].map((role) => (
+                            {['all', 'admin', 'user'].map((role) => (
                                 <button
                                     key={role}
                                     onClick={() => setFilterRole(role)}

@@ -4,7 +4,6 @@ import {
     Database,
     Users,
     Settings,
-    Activity,
     Network,
     ShieldAlert,
     LogIn,
@@ -105,7 +104,7 @@ export function AdminLayout() {
                                 isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"
                             )}>
                                 <span className="font-medium text-sm">Admin User</span>
-                                <span className="text-gray-400">超级管理员</span>
+                                <span className="text-gray-400">系统管理员</span>
                             </div>
                         </Button>
                     </Link>
