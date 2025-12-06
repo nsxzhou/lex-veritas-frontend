@@ -1,28 +1,7 @@
 import { Box, ShieldCheck, FileText } from "lucide-react";
+import type { MerkleNode, ProofStat, RecentProof } from "@/types";
 
-export interface MerkleNode {
-  hash: string;
-  type: "root" | "node" | "leaf";
-  status: "verified" | "tampered" | "pending";
-  data?: string;
-}
-
-export interface ProofStat {
-  label: string;
-  value: string;
-  icon: React.ElementType;
-  color: string;
-  bg: string;
-}
-
-export interface RecentProof {
-  id: number;
-  root: string;
-  timestamp: string;
-  block: number;
-  status: string;
-  txHash: string;
-}
+export type { MerkleNode, ProofStat, RecentProof };
 
 export const merkleTreeData = {
   root: "0x8f3...2a9",

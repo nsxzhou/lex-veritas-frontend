@@ -1,28 +1,6 @@
-// 用户数据类型定义
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: "admin" | "user";
-  status: "active" | "inactive";
-  lastActive: string;
-  avatarColor: string;
-}
+import type { User, UserHistory, TokenUsage } from "@/types";
 
-// 用户历史记录类型定义
-export interface UserHistory {
-  id: number;
-  title: string;
-  date: string;
-  tokens: number;
-  status: string;
-}
-
-// Token使用数据类型定义
-export interface TokenUsage {
-  name: string;
-  tokens: number;
-}
+export type { User, UserHistory, TokenUsage };
 
 // Mock用户列表数据
 export const mockUsers: User[] = [

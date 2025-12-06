@@ -1,12 +1,6 @@
-export interface Document {
-  id: string;
-  name: string;
-  type: "pdf" | "docx" | "txt" | "url";
-  size: string;
-  uploadDate: string;
-  status: "indexed" | "processing" | "error" | "minted";
-  uploadedBy: string;
-}
+import type { Document } from "@/types";
+
+export type { Document };
 
 export const initialDocuments: Document[] = [
   {

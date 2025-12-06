@@ -1,12 +1,6 @@
-export interface AuditLog {
-  id: number;
-  type: string;
-  severity: "high" | "medium" | "low";
-  message: string;
-  source: string;
-  timestamp: string;
-  status: string;
-}
+import type { AuditLog } from "@/types";
+
+export type { AuditLog };
 
 export const auditLogs: AuditLog[] = [
   {
