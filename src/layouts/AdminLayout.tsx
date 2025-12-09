@@ -11,12 +11,14 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { useAuthStore } from '@/stores/authStore';
 
 export function AdminLayout() {
     const [isCollapsed, setIsCollapsed] = useState(false);
     const location = useLocation();
+    const navigate = useNavigate();
 
     return (
         <div className="min-h-screen bg-gray-50 flex font-sans text-gray-900">
@@ -88,26 +90,35 @@ export function AdminLayout() {
                 </nav>
 
                 <div className="mt-auto p-4 border-t border-gray-100 overflow-hidden">
-                    <Link to="/login">
-                        <Button
-                            variant="ghost"
-                            className={cn(
-                                "w-full justify-start gap-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 h-12 rounded-xl transition-all duration-300",
-                                isCollapsed && "justify-center px-2"
-                            )}
-                        >
-                            <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200 shrink-0">
+                    <Button
+                        variant="ghost"
+                        onClick={() => {
+                            useAuthStore.getState().logout();
+                            navigate('/login');
+                        }}
+                        className={cn(
+                            "w-full justify-start gap-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 h-12 rounded-xl transition-all duration-300",
+                            isCollapsed && "justify-center px-2"
+                        )}
+                    >
+                        <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200 shrink-0 overflow-hidden">
+                            {useAuthStore.getState().user?.avatar ? (
+                                <img src={useAuthStore.getState().user?.avatar} alt="avatar" className="w-full h-full object-cover" />
+                            ) : (
                                 <LogIn className="w-4 h-4 text-gray-500" />
-                            </div>
-                            <div className={cn(
-                                "flex flex-col items-start text-xs transition-all duration-300 whitespace-nowrap overflow-hidden",
-                                isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"
-                            )}>
-                                <span className="font-medium text-sm">Admin User</span>
-                                <span className="text-gray-400">系统管理员</span>
-                            </div>
-                        </Button>
-                    </Link>
+                            )}
+                        </div>
+                        <div className={cn(
+                            "flex flex-col items-start text-xs transition-all duration-300 whitespace-nowrap overflow-hidden",
+                            isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"
+                        )}>
+                            <span className="font-medium text-sm">{useAuthStore.getState().user?.name || 'User'}</span>
+                            <span className="text-gray-400">
+                                {useAuthStore.getState().user?.role === 'admin' ? '管理员' :
+                                    useAuthStore.getState().user?.role === 'super_admin' ? '超级管理员' : '普通用户'}
+                            </span>
+                        </div>
+                    </Button>
                 </div>
             </aside>
 

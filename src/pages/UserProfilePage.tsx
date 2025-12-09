@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import {
     LogOut,
     ChevronRight,
@@ -23,14 +22,32 @@ import {
 } from 'recharts';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { mockTokenUsage, mockUserHistory } from '@/mocks/users';
-
+import { mockUserHistory } from '@/__mocks__/users';
+import { useAuthStore } from '@/stores/authStore';
+import { userApi } from '@/api/users';
+import { useEffect, useState } from 'react';
+import type { UsageStats } from '@/types';
 
 
 export function UserProfilePage() {
     const navigate = useNavigate();
+    const [usageStats, setUsageStats] = useState<UsageStats | null>(null);
     const [history, setHistory] = useState(mockUserHistory);
     const [searchQuery, setSearchQuery] = useState('');
+    const { user, logout } = useAuthStore();
+
+    useEffect(() => {
+        const fetchQuota = async () => {
+            try {
+                const stats = await userApi.getQuota();
+                setUsageStats(stats);
+            } catch (error) {
+                console.error('Failed to fetch quota:', error);
+                // toast.error('获取用量数据失败');
+            }
+        };
+        fetchQuota();
+    }, []);
 
     const filteredHistory = history.filter(item =>
         item.title.toLowerCase().includes(searchQuery.toLowerCase())
@@ -44,6 +61,22 @@ export function UserProfilePage() {
     const handleHistoryClick = (id: number) => {
         navigate(`/?session=${id}`);
     };
+
+    const handleLogout = () => {
+        logout();
+        navigate('/login');
+    };
+
+    // Transform usage stats for chart if needed, currently just showing mock chart data structure for demo purposes if API returns different structure
+    // Assuming API returns UsageStats which is single object, but chart needs array. 
+    // Creating a dummy chart data based on single stats or keeping it empty if no historical data available in stats.
+    // Since getQuota returns UsageStats { tokenQuota, tokenUsed, remaining, usageRate }, it's a snapshot, not a trend.
+    // For now, we will just display the current usage in a simple way or mock the trend based on current usage (which is not ideal).
+    // Let's create a single bar for "Current Usage" vs "Total Quota" or similar.
+    const chartData = usageStats ? [
+        { name: 'Used', tokens: usageStats.tokenUsed },
+        { name: 'Remaining', tokens: usageStats.remaining }
+    ] : [];
 
     return (
         <div className="min-h-screen bg-gray-50/50 p-4 md:p-8 font-sans">
@@ -61,12 +94,17 @@ export function UserProfilePage() {
                 {/* Profile Header (Minimalist) */}
                 <div className="flex flex-col md:flex-row items-center md:items-start justify-between gap-6 mb-12">
                     <div className="flex items-center gap-6">
-                        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-2xl font-bold text-gray-600 border border-white shadow-sm">
-                            U
+                        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-2xl font-bold text-gray-600 border border-white shadow-sm overflow-hidden">
+                            {user?.avatar ? (
+                                <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                            ) : (
+                                <span>{user?.name?.charAt(0).toUpperCase()}</span>
+                            )}
                         </div>
                         <div className="text-center md:text-left">
-                            <h1 className="text-2xl font-bold text-gray-900">User Profile</h1>
-                            <p className="text-gray-500">user@example.com</p>
+                            <h1 className="text-2xl font-bold text-gray-900">{user?.name}</h1>
+                            <p className="text-gray-500">{user?.email}</p>
+                            <p className="text-xs text-gray-400 mt-1">Role: {user?.role}</p>
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
@@ -74,7 +112,7 @@ export function UserProfilePage() {
                             <Edit2 className="w-3.5 h-3.5" />
                             编辑资料
                         </Button>
-                        <Button variant="ghost" className="gap-2 h-9 text-red-600 hover:bg-red-50 hover:text-red-700">
+                        <Button variant="ghost" className="gap-2 h-9 text-red-600 hover:bg-red-50 hover:text-red-700" onClick={handleLogout}>
                             <LogOut className="w-3.5 h-3.5" />
                             退出
                         </Button>
@@ -116,7 +154,7 @@ export function UserProfilePage() {
                                 <CardContent>
                                     <div className="h-[300px] w-full">
                                         <ResponsiveContainer width="100%" height="100%">
-                                            <BarChart data={mockTokenUsage} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                            <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
                                                 <XAxis
                                                     dataKey="name"

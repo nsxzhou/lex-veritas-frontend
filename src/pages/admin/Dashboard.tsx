@@ -19,7 +19,7 @@ import {
 } from 'recharts';
 import { cn } from '@/lib/utils';
 
-import { stats, queryVolumeData, recentActivity } from '@/mocks/dashboard';
+import { stats, queryVolumeData, recentActivity } from '@/__mocks__/dashboard';
 
 // --- Components ---
 

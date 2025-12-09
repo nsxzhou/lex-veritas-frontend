@@ -1,82 +1,40 @@
 /**
- * 用户管理 API
+ * 用户个人信息 API
  */
 
 import { apiClient } from "./client";
-import type { User, UserHistory, TokenUsage } from "@/types";
+import type { UsageStats } from "@/types";
 
-export interface UsersParams {
-  page?: number;
-  limit?: number;
-  role?: "admin" | "user";
-  status?: "active" | "inactive";
-  search?: string;
-}
-
-export interface UsersResponse {
-  users: User[];
-  total: number;
-  page: number;
-  limit: number;
-}
-
-export interface UpdateUserRequest {
+export interface UpdateProfileRequest {
   name?: string;
-  email?: string;
-  role?: "admin" | "user";
-  status?: "active" | "inactive";
+  phone?: string;
+  avatar?: string;
 }
 
-export const usersApi = {
+export interface ChangePasswordRequest {
+  oldPassword: string;
+  newPassword: string;
+}
+
+export const userApi = {
   /**
-   * 获取用户列表
+   * 更新个人资料
    */
-  getUsers: (params?: UsersParams): Promise<UsersResponse> => {
-    const query = new URLSearchParams(
-      Object.entries(params || {})
-        .filter(([, v]) => v !== undefined)
-        .map(([k, v]) => [k, String(v)])
-    ).toString();
-    return apiClient.get(`/users${query ? `?${query}` : ""}`);
+  updateProfile: (data: UpdateProfileRequest): Promise<void> => {
+    return apiClient.put("/users/me", data);
   },
 
   /**
-   * 获取单个用户详情
+   * 修改密码
    */
-  getUser: (userId: string): Promise<User> => {
-    return apiClient.get(`/users/${userId}`);
+  changePassword: (data: ChangePasswordRequest): Promise<void> => {
+    return apiClient.put("/users/me/password", data);
   },
 
   /**
-   * 更新用户信息
+   * 获取当前用户 Token 配额
    */
-  updateUser: (userId: string, data: UpdateUserRequest): Promise<User> => {
-    return apiClient.put(`/users/${userId}`, data);
-  },
-
-  /**
-   * 删除用户
-   */
-  deleteUser: (userId: string): Promise<void> => {
-    return apiClient.delete(`/users/${userId}`);
-  },
-
-  /**
-   * 获取用户咨询历史
-   */
-  getUserHistory: (userId: string): Promise<UserHistory[]> => {
-    return apiClient.get(`/users/${userId}/history`);
-  },
-
-  /**
-   * 获取用户 Token 使用趋势
-   */
-  getTokenUsage: (
-    userId: string,
-    period?: "7d" | "30d" | "90d"
-  ): Promise<TokenUsage[]> => {
-    return apiClient.get(
-      `/users/${userId}/token-usage${period ? `?period=${period}` : ""}`
-    );
+  getQuota: (): Promise<UsageStats> => {
+    return apiClient.get("/users/me/quota");
   },
 };

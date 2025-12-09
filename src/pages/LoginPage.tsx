@@ -1,26 +1,107 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Scale, ShieldCheck, ArrowRight, MessageSquare, Smartphone, QrCode } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Scale, ShieldCheck, ArrowRight, MessageSquare, Smartphone, QrCode, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { useAuthStore } from '@/stores/authStore';
+import { authApi } from '@/api/auth';
+import { toast } from 'sonner';
 
 export function LoginPage() {
     const [isLogin, setIsLogin] = useState(true);
     const [loginMethod, setLoginMethod] = useState<'password' | 'wechat' | 'phone'>('password');
     const [email, setEmail] = useState('');
+    const [name, setName] = useState('');
     const [phone, setPhone] = useState('');
     const [verifyCode, setVerifyCode] = useState('');
     const [password, setPassword] = useState('');
-    const navigate = useNavigate();
+    const [isLoading, setIsLoading] = useState(false);
+    const [isSendingCode, setIsSendingCode] = useState(false);
+    const [codeSentEmail, setCodeSentEmail] = useState('');
 
-    const handleAuth = (e: React.FormEvent) => {
+    const navigate = useNavigate();
+    const location = useLocation();
+    const { login, loginByPhone } = useAuthStore();
+
+    const handleAuth = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Mock auth logic
-        if (email === 'admin@lexveritas.com' || phone === '13800138000') {
-            navigate('/admin');
-        } else {
-            navigate('/');
+        setIsLoading(true);
+
+        try {
+            if (isLogin) {
+                // 登录逻辑
+                if (loginMethod === 'password') {
+                    await login(email, password);
+                    toast.success('登录成功');
+                } else if (loginMethod === 'phone') {
+                    await loginByPhone(phone, verifyCode);
+                    toast.success('登录成功');
+                }
+
+                // 根据用户信息和来源页面导航
+                const user = useAuthStore.getState().user;
+                const from = location.state?.from?.pathname;
+
+                // 优先跳转回原页面（如果是从受保护页面跳转来的）
+                if (from && from !== '/login') {
+                    // 检查权限
+                    if (from.startsWith('/admin')) {
+                        if (user?.role === 'admin' || user?.role === 'super_admin') {
+                            navigate(from, { replace: true });
+                        } else {
+                            toast.warning('您没有访问后台的权限');
+                            navigate('/', { replace: true });
+                        }
+                    } else {
+                        navigate(from, { replace: true });
+                    }
+                } else {
+                    // 默认跳转逻辑：管理员跳转后台，普通用户跳转首页
+                    if (user?.role === 'admin' || user?.role === 'super_admin') {
+                        navigate('/admin', { replace: true });
+                    } else {
+                        navigate('/', { replace: true });
+                    }
+                }
+            } else {
+                // 注册逻辑
+                await authApi.register({
+                    name,
+                    email,
+                    password,
+                    code: verifyCode,
+                    phone: phone || undefined,
+                });
+                toast.success('注册成功，请登录');
+                setIsLogin(true);
+                setVerifyCode('');
+            }
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : '操作失败');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleSendCode = async () => {
+        if (!email) {
+            toast.error('请输入邮箱');
+            return;
+        }
+
+        setIsSendingCode(true);
+        try {
+            await authApi.sendVerifyCode({
+                email,
+                purpose: isLogin ? 'reset_password' : 'register',
+            });
+            setCodeSentEmail(email);
+            toast.success('验证码已发送至邮箱');
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : '发送失败');
+        } finally {
+            setIsSendingCode(false);
         }
     };
 
@@ -83,8 +164,25 @@ export function LoginPage() {
                                         onChange={(e) => setEmail(e.target.value)}
                                         className="h-11 bg-gray-50/50 border-gray-200 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
                                         required
+                                        disabled={isLoading}
                                     />
                                 </div>
+                                {!isLogin && (
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider ml-1">
+                                            姓名
+                                        </label>
+                                        <Input
+                                            type="text"
+                                            placeholder="请输入姓名"
+                                            value={name}
+                                            onChange={(e) => setName(e.target.value)}
+                                            className="h-11 bg-gray-50/50 border-gray-200 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+                                            required
+                                            disabled={isLoading}
+                                        />
+                                    </div>
+                                )}
                                 <div className="space-y-1.5">
                                     <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider ml-1">
                                         密码
@@ -96,8 +194,42 @@ export function LoginPage() {
                                         onChange={(e) => setPassword(e.target.value)}
                                         className="h-11 bg-gray-50/50 border-gray-200 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
                                         required
+                                        disabled={isLoading}
                                     />
                                 </div>
+                                {!isLogin && (
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider ml-1">
+                                            验证码
+                                        </label>
+                                        <div className="flex gap-2">
+                                            <Input
+                                                type="text"
+                                                placeholder="请输入验证码"
+                                                value={verifyCode}
+                                                onChange={(e) => setVerifyCode(e.target.value)}
+                                                className="h-11 bg-gray-50/50 border-gray-200 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+                                                required
+                                                disabled={isLoading}
+                                            />
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                className="h-11 px-4 whitespace-nowrap"
+                                                onClick={handleSendCode}
+                                                disabled={isSendingCode || isLoading || !email || codeSentEmail === email}
+                                            >
+                                                {isSendingCode ? (
+                                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                                ) : codeSentEmail === email ? (
+                                                    '已发送'
+                                                ) : (
+                                                    '获取验证码'
+                                                )}
+                                            </Button>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         )}
 
@@ -114,6 +246,7 @@ export function LoginPage() {
                                         onChange={(e) => setPhone(e.target.value)}
                                         className="h-11 bg-gray-50/50 border-gray-200 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
                                         required
+                                        disabled={isLoading}
                                     />
                                 </div>
                                 <div className="space-y-1.5">
@@ -128,11 +261,18 @@ export function LoginPage() {
                                             onChange={(e) => setVerifyCode(e.target.value)}
                                             className="h-11 bg-gray-50/50 border-gray-200 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
                                             required
+                                            disabled={isLoading}
                                         />
-                                        <Button type="button" variant="outline" className="h-11 px-4 whitespace-nowrap">
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            className="h-11 px-4 whitespace-nowrap"
+                                            disabled={true}
+                                        >
                                             获取验证码
                                         </Button>
                                     </div>
+                                    <p className="text-xs text-amber-600 ml-1">注：手机验证码登录功能待后端支持短信服务</p>
                                 </div>
                             </div>
                         )}
@@ -158,9 +298,19 @@ export function LoginPage() {
                             <Button
                                 type="submit"
                                 className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-all shadow-lg shadow-blue-600/30 hover:shadow-blue-600/40 active:scale-[0.98] flex items-center justify-center gap-2"
+                                disabled={isLoading}
                             >
-                                {isLogin ? '登录' : '创建账号'}
-                                <ArrowRight className="w-4 h-4" />
+                                {isLoading ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                        处理中...
+                                    </>
+                                ) : (
+                                    <>
+                                        {isLogin ? '登录' : '创建账号'}
+                                        <ArrowRight className="w-4 h-4" />
+                                    </>
+                                )}
                             </Button>
                         )}
                     </form>

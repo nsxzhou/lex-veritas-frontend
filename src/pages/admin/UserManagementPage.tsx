@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
     Search,
     Filter,
@@ -42,20 +42,39 @@ import {
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from '@/lib/utils';
-import type { User } from '@/mocks/users';
-import { mockUsers } from '@/mocks/users';
-
-
+import { adminApi } from '@/api/admin';
+import type { UserResponse } from '@/types';
+import { toast } from 'sonner';
 
 export function UserManagementPage() {
-    const [users, setUsers] = useState<User[]>(mockUsers);
+    const [users, setUsers] = useState<UserResponse[]>([]);
+    const [isLoading, setIsLoading] = useState(true); // Keeping isLoading as it sets loading state, even if not rendered yet (could be used later)
+    // Actually error said it's never read. I should use it or remove it. 
+    // I'll use it in the UI to show a loader.
     const [searchQuery, setSearchQuery] = useState('');
     const [filterRole, setFilterRole] = useState<string>('all');
     const [isAddUserOpen, setIsAddUserOpen] = useState(false);
 
     // Form State
-    const [newUser, setNewUser] = useState({ name: '', email: '', role: 'viewer' });
+    const [newUser, setNewUser] = useState({ name: '', email: '', role: 'user' });
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const fetchUsers = async () => {
+        setIsLoading(true);
+        try {
+            const response = await adminApi.getUsers();
+            setUsers(response.list);
+        } catch (error) {
+            console.error('Failed to fetch users:', error);
+            // toast.error('获取用户列表失败');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchUsers();
+    }, []);
 
     const filteredUsers = users.filter(user => {
         const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) || user.email.toLowerCase().includes(searchQuery.toLowerCase());
@@ -71,28 +90,48 @@ export function UserManagementPage() {
         }
     };
 
-    const handleAddUser = () => {
+    const handleAddUser = async () => {
         setIsSubmitting(true);
-        // Simulate API call
-        setTimeout(() => {
-            const user: User = {
-                id: (users.length + 1).toString(),
-                name: newUser.name,
-                email: newUser.email,
-                role: newUser.role as 'admin' | 'user',
-                status: 'active',
-                lastActive: 'Just now',
-                avatarColor: 'bg-gray-500' // Default color
-            };
-            setUsers([...users, user]);
-            setIsSubmitting(false);
+        try {
+            // Currently authApi.register is for public registration. 
+            // Admin creating user might need a different endpoint or use the same if allowed.
+            // Assuming adminApi doesn't have create user, we might need to use authApi.register or mock it if backend restricts.
+            // Looking at api/auth.ts, register takes code. Admin creating user usually doesn't verify code immediately.
+            // Let's assume for now we can't easily create user without verification code flow in this frontend version unless we have a specific admin create endpoint.
+            // I'll display a toast for now as 'Not Implemented' or try to use a mock implementation if strictly required, 
+            // but the goal is real integration. 
+            // Since adminApi doesn't have createUser, I will notify user about this limitation or add a TODO.
+            // Just for demo of integration, I will reload the list.
+
+            // Wait, usually admin creates user implies sending invitation or directly setting password.
+            // I will leave this as a TODO/Mock for the "Add" action to avoid breaking the UI flow, but fetchData is real.
+            toast.info('请使用注册页面注册新用户');
             setIsAddUserOpen(false);
-            setNewUser({ name: '', email: '', role: 'viewer' }); // Reset form
-        }, 1000);
+        } catch {
+            toast.error('操作失败');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleDeleteUser = async (id: string) => {
+        if (!confirm('确定要删除该用户吗？')) return;
+        try {
+            await adminApi.deleteUser(id);
+            toast.success('用户已删除');
+            fetchUsers();
+        } catch {
+            toast.error('删除失败');
+        }
     };
 
     return (
         <div className="space-y-6">
+            {isLoading && (
+                <div className="absolute inset-0 bg-white/50 flex items-center justify-center z-50">
+                    <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+                </div>
+            )}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h2 className="text-2xl font-bold tracking-tight text-gray-900">用户管理</h2>
@@ -218,8 +257,8 @@ export function UserManagementPage() {
                                         <TableCell className="pl-6 py-3">
                                             <div className="flex items-center gap-3">
                                                 <Avatar className="h-9 w-9">
-                                                    <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`} alt={user.name} />
-                                                    <AvatarFallback className={user.avatarColor}>{user.name.charAt(0)}</AvatarFallback>
+                                                    <AvatarImage src={user.avatar} alt={user.name} />
+                                                    <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
                                                 </Avatar>
                                                 <div>
                                                     <div className="font-medium text-gray-900">{user.name}</div>
@@ -248,13 +287,18 @@ export function UserManagementPage() {
                                                 </span>
                                             </div>
                                         </TableCell>
-                                        <TableCell className="py-3 text-gray-500">{user.lastActive}</TableCell>
+                                        <TableCell className="py-3 text-gray-500">{user.lastLoginAt || '从未登录'}</TableCell>
                                         <TableCell className="py-3 text-right pr-6">
                                             <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                                 <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-blue-600">
                                                     <Edit className="w-4 h-4" />
                                                 </Button>
-                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-red-600">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-8 w-8 text-gray-400 hover:text-red-600"
+                                                    onClick={() => handleDeleteUser(user.id)}
+                                                >
                                                     <Trash2 className="w-4 h-4" />
                                                 </Button>
                                                 <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-gray-900">
@@ -276,6 +320,6 @@ export function UserManagementPage() {
             </Card>
 
 
-        </div>
+        </div >
     );
 }

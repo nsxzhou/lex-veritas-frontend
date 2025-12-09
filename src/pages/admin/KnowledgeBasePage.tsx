@@ -32,7 +32,7 @@ import { MultiSourceUploader } from '@/components/MultiSourceUploader';
 import { AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
-import { type Document, initialDocuments } from '@/mocks/knowledgeBase';
+import { type Document, initialDocuments } from '@/__mocks__/knowledgeBase';
 
 export function KnowledgeBasePage() {
     const [documents, setDocuments] = useState<Document[]>(initialDocuments);

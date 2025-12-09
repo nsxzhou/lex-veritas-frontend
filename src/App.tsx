@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ChatPage } from '@/pages/ChatPage';
 import { LoginPage } from '@/pages/LoginPage';
-import { AdminDashboard } from '@/pages/AdminDashboard';
+import { AdminDashboard } from '@/pages/admin/Dashboard';
 import { KnowledgeBasePage } from '@/pages/admin/KnowledgeBasePage';
 import { UserManagementPage } from '@/pages/admin/UserManagementPage';
 import { ShowcasePage } from '@/pages/ShowcasePage';
@@ -14,16 +14,26 @@ import { ProofVisualizationPage } from '@/pages/admin/ProofVisualizationPage';
 import { SecurityAuditPage } from '@/pages/admin/SecurityAuditPage';
 import { SettingsPage } from '@/pages/admin/SettingsPage';
 
+import { useAuthStore } from '@/stores/authStore';
+import { RequireAuth } from '@/components/RequireAuth';
+import { useEffect } from 'react';
+
 function App() {
+  const initializeAuth = useAuthStore((state) => state.initialize);
+
+  useEffect(() => {
+    initializeAuth();
+  }, [initializeAuth]);
+
   return (
     <Router>
       <Routes>
         <Route element={<UserLayout />}>
           <Route path="/" element={<ChatPage />} />
-          <Route path="/profile" element={<UserProfilePage />} />
+          <Route path="/profile" element={<RequireAuth><UserProfilePage /></RequireAuth>} />
         </Route>
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/admin" element={<AdminLayout />}>
+        <Route path="/admin" element={<RequireAuth><AdminLayout /></RequireAuth>}>
           <Route index element={<AdminDashboard />} />
           <Route path="knowledge" element={<KnowledgeBasePage />} />
           <Route path="proof" element={<ProofVisualizationPage />} />

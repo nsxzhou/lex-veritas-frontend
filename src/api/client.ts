@@ -2,8 +2,10 @@
  * API 客户端配置
  */
 
+import type { ApiResponse } from "@/types";
+
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1";
 
 /**
  * 通用 API 请求封装
@@ -26,7 +28,7 @@ class ApiClient {
     };
 
     // 从 localStorage 获取 token
-    const token = localStorage.getItem("auth_token");
+    const token = localStorage.getItem("accessToken");
     if (token) {
       defaultHeaders["Authorization"] = `Bearer ${token}`;
     }
@@ -41,14 +43,25 @@ class ApiClient {
 
     const response = await fetch(url, config);
 
+    // 解析响应
+    const apiResponse: ApiResponse<T> = await response.json().catch(() => ({
+      code: response.status,
+      message: "请求失败",
+      data: null as T,
+    }));
+
+    // 检查 HTTP 状态码
     if (!response.ok) {
-      const error = await response
-        .json()
-        .catch(() => ({ message: "请求失败" }));
-      throw new Error(error.message || `HTTP Error: ${response.status}`);
+      throw new Error(apiResponse.message || `HTTP Error: ${response.status}`);
     }
 
-    return response.json();
+    // 检查业务状态码
+    if (apiResponse.code !== 200 && apiResponse.code !== 0) {
+      throw new Error(apiResponse.message || "请求失败");
+    }
+
+    // 返回解包后的 data
+    return apiResponse.data;
   }
 
   async get<T>(endpoint: string): Promise<T> {

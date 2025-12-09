@@ -7,7 +7,7 @@ import { Search, Database, ShieldCheck, GitCommit, ArrowRight, CheckCircle2, Clo
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
-import { type MerkleNode, merkleTreeData, recentProofs, proofStats } from '@/mocks/proof';
+import { type MerkleNode, merkleTreeData, recentProofs, proofStats } from '@/__mocks__/proof';
 
 export function ProofVisualizationPage() {
     const [selectedNode, setSelectedNode] = useState<MerkleNode | null>(null);

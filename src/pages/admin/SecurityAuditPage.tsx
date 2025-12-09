@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/table";
 import { AlertTriangle, Search, ShieldAlert, CheckCircle, Clock, Filter } from 'lucide-react';
 
-import { auditLogs } from '@/mocks/audit';
+import { auditLogs } from '@/__mocks__/audit';
 
 export function SecurityAuditPage() {
     const [searchTerm, setSearchTerm] = useState('');

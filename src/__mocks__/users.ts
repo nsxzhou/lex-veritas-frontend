@@ -1,46 +1,6 @@
-import type { User, UserHistory, TokenUsage } from "@/types";
+import type { UserResponse as User, UserHistory, TokenUsage } from "@/types";
 
 export type { User, UserHistory, TokenUsage };
-
-// Mock用户列表数据
-export const mockUsers: User[] = [
-  {
-    id: "1",
-    name: "Admin User",
-    email: "admin@lexveritas.com",
-    role: "admin",
-    status: "active",
-    lastActive: "Just now",
-    avatarColor: "bg-blue-500",
-  },
-  {
-    id: "2",
-    name: "Alice Guo",
-    email: "alice@lexveritas.com",
-    role: "user",
-    status: "active",
-    lastActive: "10 mins ago",
-    avatarColor: "bg-emerald-500",
-  },
-  {
-    id: "3",
-    name: "Bob Chen",
-    email: "bob@lexveritas.com",
-    role: "admin",
-    status: "active",
-    lastActive: "2 hours ago",
-    avatarColor: "bg-amber-500",
-  },
-  {
-    id: "4",
-    name: "David Li",
-    email: "david@lexveritas.com",
-    role: "user",
-    status: "inactive",
-    lastActive: "3 days ago",
-    avatarColor: "bg-purple-500",
-  },
-];
 
 // Mock用户历史记录数据
 export const mockUserHistory: UserHistory[] = [
